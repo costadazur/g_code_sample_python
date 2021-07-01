@@ -25,7 +25,8 @@ class VideoPlayer:
         """Returns all videos."""
         print("Here's a list of all available videos:")
         for vid in self._video_library.get_all_videos():
-            print(vid.title +" "+ vid.video_id +" "+ str(vid.tags))
+            tags = " ".join(vid.tags)
+            print(vid.title +" ("+ vid.video_id +") ["+ tags+"]")
 
     def play_video(self, video_id):
         """Plays the respective video.
@@ -40,7 +41,7 @@ class VideoPlayer:
         for vid in self._video_library.get_all_videos():
           if vid.video_id == video_id:
               isFlaggedVid = self._flagged_videos.get(vid.video_id)
-              if isFlaggedVid:
+              if isFlaggedVid != None:
                 print("Cannot play video: Video is currently flagged "+isFlaggedVid+ "in 'Playing video: "+vid.title )
               else:
                 print("Playing video: "+vid.title)
@@ -87,9 +88,13 @@ class VideoPlayer:
         """Resumes playing the current video."""
         if self._current_video.title!="":
             if self._current_video.isPaused:
-                print("Continuing video: "+self._current_video.title)
-                self._current_video.setPaused(False)
-                self._current_video.setResumed(True)
+                isFlaggedVid = self._flagged_videos.get(self._current_video.video_id)
+                if isFlaggedVid != None:
+                        print("Cannot continue video: Video is currently flagged "+isFlaggedVid+ "in 'Continuing video: "+self._current_video.title )
+                else:
+                    print("Continuing video: "+self._current_video.title)
+                    self._current_video.setPaused(False)
+                    self._current_video.setResumed(True)
             else:
                 print("Cannot continue video: Video is not paused")
         else:
@@ -98,8 +103,8 @@ class VideoPlayer:
     def show_playing(self):
         """Displays video currently playing."""
         if self._current_video.title!="" and self._current_video.isPaused==False:
-            tags = "".join(self._current_video.tags)
-            print("Currently playing: "+self._current_video.title +" ("+ self._current_video.video_id +") "+ tags)
+            tags = " ".join(self._current_video.tags)
+            print("Currently playing: "+self._current_video.title +" ("+ self._current_video.video_id +") ["+ tags+"]")
         else:
             print("No video is currently playing")
 
@@ -130,9 +135,13 @@ class VideoPlayer:
             if ret_playlist == None:
                 print("Cannot add video to "+playlist_name+": Playlist does not exist")
             else:
-                ret_playlist.add_video_to_playlist(video_id)
-                self._video_playlist.update({playlist_name:ret_playlist})
-                print("Added video to "+playlist_name+": "+vid_title)
+                  isFlaggedVid = self._flagged_videos.get(vid.video_id)
+                  if isFlaggedVid != None:
+                        print("Cannot add video to "+playlist_name+": Video is currently flagged "+isFlaggedVid+ "in 'Added video to "+playlist_name+": "+vid.title )
+                  else:
+                    ret_playlist.add_video_to_playlist(video_id)
+                    self._video_playlist.update({playlist_name:ret_playlist})
+                    print("Added video to "+playlist_name+": "+vid_title)
 
     def show_all_playlists(self):
         """Display all playlists."""
@@ -167,8 +176,11 @@ class VideoPlayer:
         if matched_playlist==None:
             print("Cannot remove video from  "+ playlist_name+": Playlist does not exist")
         else:
-            matched_playlist.delete_video_from_playlist(video_id)
-            print(matched_playlist)
+            try:
+               matched_playlist.delete_video_from_playlist(video_id)
+               print(matched_playlist)
+            except:
+               print("Video is not in playlist")
 
     def clear_playlist(self, playlist_name):
         """Removes all videos from a playlist with a given name.
@@ -194,7 +206,7 @@ class VideoPlayer:
         if matched_playlist==None:
             print("Cannot delete playlist "+ playlist_name+": Playlist does not exist")
         else:
-            self._video_playlist.pop(matched_playlist)
+            self._video_playlist.pop(playlist_name)
             print("Deleted playlist: "+playlist_name)
 
     def search_videos(self, search_term):
@@ -215,7 +227,8 @@ class VideoPlayer:
             print("Here are the results for "+ search_term+":")
             i = 1
             for vid in videos_that_match:
-                print(str(i)+") "+vid.title +"("+vid.video_id+") "+vid.tags)
+                tags = " ".join(vid.tags)
+                print(str(i)+") "+vid.title +"("+vid.video_id+") ["+ tags+"]")
                 i = i + 1
 
     def search_videos_tag(self, video_tag):
@@ -236,7 +249,8 @@ class VideoPlayer:
             print("Here are the results for "+ video_tag+":")
             i = 1
             for vid in videos_that_match:
-                print(str(i)+") "+vid.title +"("+vid.video_id+") "+str(vid.tags))
+                tags = " ".join(vid.tags)
+                print(str(i)+") "+vid.title +"("+vid.video_id+") ["+ tags+"]")
                 i = i + 1
 
     def flag_video(self, video_id, flag_reason="Not supplied"):
