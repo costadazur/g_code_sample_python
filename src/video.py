@@ -32,13 +32,18 @@ class Video:
         """Returns the list of tags of a video."""
         return self._tags
 
-    @property
-    def paused(self, paused_val) -> bool:
+    def setPaused(self, paused_val) -> bool:
         """Returns if video is paused."""
         self._paused = paused_val
-        return self._paused
-    @property
-    def resumed(self, resumed_val) -> bool:
+    def setResumed(self, resumed_val) -> bool:
         """Returns if video is resumed."""
         self._resumed = resumed_val
+
+    @property
+    def isPaused(self) -> bool:
+        """Returns if video is paused."""
+        return self._paused
+    @property
+    def isResumed(self) -> bool:
+        """Returns if video is resumed."""
         return self._resumed
