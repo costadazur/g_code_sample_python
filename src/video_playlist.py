@@ -16,7 +16,7 @@ class Playlist:
                self._videos.append(vid)
                found_video = True
         if found_video == False:
-            raise ValueError("Video is not in playlist")
+            raise ValueError("Video is not in library")
 
     def delete_video_from_playlist(self, video_id):
         found_video = False

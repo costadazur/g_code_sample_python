@@ -2,6 +2,7 @@
 
 from os import truncate
 import random
+from re import S
 from .video_library import VideoLibrary
 from .video import Video
 from .video_playlist import Playlist
@@ -26,7 +27,11 @@ class VideoPlayer:
         print("Here's a list of all available videos:")
         for vid in self._video_library.get_all_videos():
             tags = " ".join(vid.tags)
-            print(vid.title +" ("+ vid.video_id +") ["+ tags+"]")
+            isFlaggedVid = self._flagged_videos.get(vid.video_id)
+            if isFlaggedVid != None:
+                print(vid.title +" ("+ vid.video_id +") ["+ tags+"] - FLAGGED (reason:"+isFlaggedVid+")")
+            else:
+                print(vid.title +" ("+ vid.video_id +") ["+ tags+"]")
 
     def play_video(self, video_id):
         """Plays the respective video.
@@ -42,7 +47,7 @@ class VideoPlayer:
           if vid.video_id == video_id:
               isFlaggedVid = self._flagged_videos.get(vid.video_id)
               if isFlaggedVid != None:
-                print("Cannot play video: Video is currently flagged "+isFlaggedVid+ "in 'Playing video: "+vid.title )
+                print("Cannot play video: Video is currently flagged (reason: "+isFlaggedVid+ ") in 'Playing video: "+vid.title )
               else:
                 print("Playing video: "+vid.title)
                 self._current_video = vid
@@ -114,8 +119,12 @@ class VideoPlayer:
         Args:
             playlist_name: The playlist name.
         """
-        self._video_playlist.update({playlist_name:Playlist()})
-        print("Successfully created new playlist: "+playlist_name)
+        playList = self._video_playlist.get(playlist_name)
+        if playList == None:
+            self._video_playlist.update({playlist_name:Playlist()})
+            print("Successfully created new playlist: "+playlist_name)
+        else:
+            print("Cannot create playlist: A playlist with the same name already exists")
 
     def add_to_playlist(self, playlist_name, video_id):
         """Adds a video to a playlist with a given name.
@@ -139,13 +148,16 @@ class VideoPlayer:
                   if isFlaggedVid != None:
                         print("Cannot add video to "+playlist_name+": Video is currently flagged "+isFlaggedVid+ "in 'Added video to "+playlist_name+": "+vid.title )
                   else:
-                    ret_playlist.add_video_to_playlist(video_id)
-                    self._video_playlist.update({playlist_name:ret_playlist})
-                    print("Added video to "+playlist_name+": "+vid_title)
+                      if vid in ret_playlist._videos:
+                          print("Cannot add video to "+playlist_name+": Video already added")
+                      else:
+                         ret_playlist.add_video_to_playlist(video_id)
+                         self._video_playlist.update({playlist_name:ret_playlist})
+                         print("Added video to "+playlist_name+": "+vid_title)
 
     def show_all_playlists(self):
         """Display all playlists."""
-        if len(self._video_playlist==0):
+        if len(self._video_playlist)==0:
             print("No playlists exist yet")
         else:
             print(self._video_playlist)
@@ -215,6 +227,7 @@ class VideoPlayer:
         Args:
             search_term: The query to be used in search.
         """
+        isFound = False
         videos_that_match = []
         for vid in self._video_library.get_all_videos():
                if search_term.lower() in vid.title.lower():
@@ -222,7 +235,7 @@ class VideoPlayer:
                    isFound = True
                    break
         if isFound == False:
-            print("Cannot play video: Video does not exist")
+            print("No search results for "+search_term)
         else:
             print("Here are the results for "+ search_term+":")
             i = 1
@@ -237,6 +250,7 @@ class VideoPlayer:
         Args:
             video_tag: The video tag to be used in search.
         """
+        isFound = False
         videos_that_match = []
         for vid in self._video_library.get_all_videos():
                if video_tag in vid.tags:
@@ -244,7 +258,7 @@ class VideoPlayer:
                    isFound = True
                    break
         if isFound == False:
-            print("Cannot play video: Video does not exist")
+            print("No search results for "+ video_tag)
         else:
             print("Here are the results for "+ video_tag+":")
             i = 1
